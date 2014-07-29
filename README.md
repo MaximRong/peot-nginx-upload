@@ -48,7 +48,6 @@ Create a new upload object.
 
 upload
 ------
-
 ```up:upload();```
 
 Attempts to upload file to server.
