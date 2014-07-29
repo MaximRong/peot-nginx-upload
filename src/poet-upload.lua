@@ -5,7 +5,7 @@ local localMaps = {
     back = "/home/maxim/Documents/poet/back/",
 };
 
-local _M = { _VERSION = '0.01' };
+
 local upload = require "resty.upload";
 local method = ngx.var.request_method;
 local resty_random = require "resty.random"
@@ -13,11 +13,10 @@ local str = require "resty.string"
 local match = string.match
 local cjson = require "cjson"
 
-local bodyHandler;
-local endPartHandler;
-local fileName;
-local uploadFileSize = 0;
-local uploadFile;
+local _M = { _VERSION = '0.01' };
+local mt = { __index = _M }
+
+
 
 local uploadStandard = {
     size = 0,
@@ -26,14 +25,14 @@ local uploadStandard = {
 };
 
 
-function uploadFileHandler(_res) 
-    uploadFileSize = uploadFileSize +  string.byte(_res)
-    uploadFile:write(_res);
+function uploadFileHandler(self, _res) 
+    self.uploadFile:write(_res);
+    self.uploadFileSize =  self.uploadFileSize +  string.byte(_res)
 end;
 
-function closeFileHandler()
-    uploadFile:close()
-    uploadFile = nil
+function closeFileHandler(self)
+    self.uploadFile:close()
+    self.uploadFile = nil
 end;
 
 function parseUploadLimitInfo()
@@ -69,25 +68,25 @@ function computeLimitSize()
     return limitSize;
 end
 
-function overLimitSize()
+function _M.overLimitSize(self)
     if 0 == uploadStandard.size then return false end;
 
     local limitSize = computeLimitSize();
-    if limitSize < uploadFileSize then
+    if limitSize < self.uploadFileSize then
         closeFile();
-        os.remove(uploadStandard.stage .. fileName)
-        ngx.log(ngx.ERR, "upload file size over the limit, the upload size is : ", uploadFileSize, " ; the limit size is : ", limitSize);
+        os.remove(uploadStandard.stage .. self.fileName)
+        ngx.log(ngx.ERR, "upload file size over the limit, the upload size is : ", self.uploadFileSize, " ; the limit size is : ", limitSize);
         return true;
     end
 
     return false;
 end
 
-function allowUploadType(_fileName)
+function _M.allowUploadType(self)
     if "*" == uploadStandard.suffix then return true end;
     local pattern = ".+\\.(" .. uploadStandard.suffix .. ")$"
     ngx.log(ngx.DEBUG, "------allowed upload file type is : ------>", pattern)
-    return ngx.re.match(_fileName, pattern);
+    return ngx.re.match(self.fileName, pattern);
 end
 
 function exitWithErrorMsg(_msg, _err)
@@ -113,9 +112,9 @@ function createUploadForm()
     return form;
 end
 
-function createRandomFilename(_fileName)
+function _M.createRandomFilename(self)
     local random = resty_random.bytes(16)
-    local prefix, suffix = match(fileName, "^(.+)%.(.+)$") -- lua 原生match 正则转义用%
+    local prefix, suffix = match(self.fileName, "^(.+)%.(.+)$") -- lua 原生match 正则转义用%
     return prefix .. str.to_hex(random) .. '.' .. suffix;
 end
 
@@ -123,7 +122,7 @@ local function checkDirectoryExists(_sPath )
     return os.execute( "cd " .. _sPath ) == 0
 end
 
-function handleRequestData(_form) 
+function _M.handleRequestData(self, _form, _uploadResult) 
     while true do
         local typ, res, err = _form:read();
         if not typ then
@@ -133,16 +132,16 @@ function handleRequestData(_form)
         if typ == "header" then
             
             if res[1] ~= "Content-Type" then
-                matchUpload = ngx.re.match(res[2], '(.+)filename="(.+)"(.*)')
+                local matchUpload = ngx.re.match(res[2], '(.+)filename="(.+)"(.*)')
                 if matchUpload then                     
-                    fileName = matchUpload[2];
-                    ngx.log(ngx.DEBUG, "------start to handle upload file------>", fileName)
-                    if not allowUploadType(fileName) then 
+                    self.fileName = matchUpload[2];
+                    ngx.log(ngx.DEBUG, "------start to handle upload file------>", self.fileName)
+                    if not self:allowUploadType() then 
                         exitWithErrorMsg("upload file type is not allowed!! ", err)
                     end
                   
-                    fileName = createRandomFilename(fileName)
-                    ngx.log(ngx.DEBUG, "------random file name is ------>", fileName)
+                    self.fileName = self:createRandomFilename()
+                    ngx.log(ngx.DEBUG, "------random file name is ------>", self.fileName)
 
                     local directory = uploadStandard.localPath;
                     if not checkDirectoryExists(directory) then
@@ -150,19 +149,19 @@ function handleRequestData(_form)
                         os.execute( "mkdir -p " .. directory )
                     end;
 
-                    uploadFile = io.open(directory .. fileName, "w+")                   
-                    if not uploadFile then
-                        exitWithErrorMsg("failed to open file :" .. fileName, err)
+                    self.uploadFile = io.open(directory .. self.fileName, "w+")                   
+                    if not self.uploadFile then
+                        exitWithErrorMsg("failed to open file :" .. self.fileName, err)
                     end
-                    bodyHandler = uploadFileHandler;
-                    endPartHandler = closeFileHandler;
+                    self.bodyHandler = uploadFileHandler;
+                    self.endPartHandler = closeFileHandler;
                 end;            
             end;
 
         elseif typ == "body" then
-            if bodyHandler then
-                bodyHandler(res);
-                if overLimitSize() then  
+            if self.bodyHandler then
+                self:bodyHandler(res);
+                if self:overLimitSize() then  
                     exitWithErrorMsg("file size over limit :")
                 end;
                 
@@ -170,9 +169,12 @@ function handleRequestData(_form)
 
         elseif typ == "part_end" then
                 bodyHandler = nil;
-                if endPartHandler then
-                    endPartHandler()
+                if self.endPartHandler then
+                    self:endPartHandler()
                     endPartHandler = nil;
+                    table.insert(_uploadResult, {filename = self.fileName, fileSize = self.uploadFileSize})
+                    self.fileName = nil;
+                    self.uploadFileSize = 0;
                 end
 
         elseif typ == "eof" then
@@ -184,12 +186,25 @@ function handleRequestData(_form)
 
 end;
 
-function _M.upload()
-    parseUploadLimitInfo();
-    local form = createUploadForm()
-    handleRequestData(form)
+function _M.new()
+    local self = {
+        bodyHandler = nil, 
+        endPartHandler = nil, 
+        fileName = nil, 
+        uploadFile = nil, 
+        uploadFileSize = 0;
+    }
+    return setmetatable(self, mt);
+end
 
-    ngx.say(cjson.encode({filename =  fileName, fileSize = uploadFileSize}));   
+function _M.upload(self)
+
+    parseUploadLimitInfo();
+    local uploadResult = {};
+    local form = createUploadForm()
+    self:handleRequestData(form, uploadResult)
+
+    ngx.say(cjson.encode(uploadResult));   
     
 end;
 
