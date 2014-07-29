@@ -99,5 +99,5 @@ there are three optional arguments for client side, the arguments may send to se
           the argument of this must match the server side config, or you will get an error!
 
 the sample request url like below :
-```http://uploadurl?size=300k&suffix=jpg|gif|txt&localPath=front```
+`http://uploadurl?size=300k&suffix=jpg|gif|txt&localPath=front`
 
