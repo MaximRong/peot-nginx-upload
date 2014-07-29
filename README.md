@@ -48,7 +48,7 @@ Create a new upload object.
 
 upload
 ------
-```up:upload();```
+`up:upload();`
 
 Attempts to upload file to server.
 this module will rename your upload file, and return the new file name to client when upload finished.
