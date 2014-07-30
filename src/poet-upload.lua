@@ -55,7 +55,6 @@ local function parseUploadLimitInfo(_self)
 end;
 
 
-
 local function overLimitSize(_self)
     if 0 == _self.size then return false end;
 
@@ -81,8 +80,6 @@ local function allowUploadType(_self, _fileName)
         exitWithClientErrorMsg("upload file type is not allowed!! ", 481, err)
     end
 end
-
-
 
 local function exitWithErrorMsg(_msg, _err)
     exitWithClientErrorMsg(_msg, 500, _err)
@@ -161,7 +158,7 @@ local function doBodyHandlerIfExists(_self, _res)
     end;
 end
 
-local function doEndHandLerIfExists(_self, _uploadResult)
+local function doEndHandlerIfExists(_self, _uploadResult)
     if not _self.endPartHandler then return end
     
     _self:endPartHandler()
@@ -191,7 +188,7 @@ local function handleRequestData(_self, _form, _uploadResult)
             doBodyHandlerIfExists(_self, res)            
 
         elseif typ == "part_end" then
-            doEndHandLerIfExists(_self, uploadResult)
+            doEndHandlerIfExists(_self, uploadResult)
 
         elseif typ == "eof" then
             break;
