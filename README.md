@@ -16,11 +16,23 @@ nginx conf:
 
 ```
   location /upload {
-      default_type text/html;
       content_by_lua '
+          -- need to replace with realworld stage path
+          local localMaps = {
+              defaultPath = "/upload/poet/index/",
+              index = "/upload/poet/index/",
+              front = "/upload/poet/front/",
+              back = "/upload/poet/back/",
+          };
+
+          local localPath = localMaps.defaultPath;
+
+          if not ngx.arg_localPath then 
+              localPath =  localMaps[ngx.var.arg_localPath];
+          end     
+
           local upload = require "poet.poet-upload";
-          local up = upload.new();
-          up:upload();
+          upload.upload(ngx.var.arg_size, ngx.var.arg_suffix, localPath);
       ';
   }
 ```
@@ -40,33 +52,27 @@ Note that at least ngx_lua 0.5.0rc29 or ngx_openresty 1.0.15.7 is required.
 Methods
 =======
 
-new
----
-```local up = upload.new();```
-
-Create a new upload object.
-
 upload
 ------
 `up:upload();`
 
 Attempts to upload file to server.
 this module will rename your upload file, and return the new file name to client when upload finished.
+Allow to upload multiple file an once, and server will return a json array to client.
 
 Config
 =======
-There is one static config in module interior. to config the storage of the upload file.
+There is one static config in nginx location config block. to config the storage of the upload file.
 ```
 local localMaps = {
+    defaultPath = "/upload/poet/index/",
     index = "/upload/poet/index/",
     front = "/upload/poet/front/",
     back = "/upload/poet/back/",
 };
 ```
-the default config is 'index', and must don not remove this key.
-user must config this as needed, then must send the right key with upload argument for the path when upload file.
-
-
+the default config is 'defaultPath', and must don not remove this key.
+user must config this as needed, then when you upload a file, you must send the right key with 'upload argument' for the path.
 
 Result
 ===========
@@ -90,7 +96,7 @@ Client side
 there are three optional arguments for client side, the arguments may send to server by get arguments.
 
 1. size : to limit upload file size, when the size of upload file over the limit, server will return httpstatus code 480.
-          the size can be number, or unit with 'M'/'m' or 'K''k'. All of those arguments is legal : `300` `300M` `300m` `300K`.
+          the size argument can be number, or unit with 'M'/'m' or 'K'/'k'. All of those arguments is legal : `300` `300M` `300m` `300K`.
 
 2. suffix : to limit suffix of the upload file, when uplod file not match the limit, server will return httpstatus code 481.
           the format of the suffix argument is : suffix1|suffix2|suffix3, like : jpg|txt|gif
