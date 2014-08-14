@@ -27,7 +27,7 @@ nginx conf:
 
           local localPath = localMaps.defaultPath;
 
-          if not ngx.arg_localPath then 
+          if not ngx.arg_localPath and ngx.arg_localPath ~= nil then  
               localPath =  localMaps[ngx.var.arg_localPath];
           end     
 

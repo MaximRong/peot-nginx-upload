@@ -6,12 +6,20 @@ local cjson = require "cjson"
 
 local _M = { _VERSION = '0.01' };
 
+function getFilesize(_file)
+    local current = _file:seek()      -- get current position
+    local size = _file:seek("end")    -- get file size
+    _file:seek("set", current)        -- restore position
+    return size
+end
+
 local function uploadFileHandler(self, _res) 
     self.uploadFile:write(_res);
-    self.uploadFileSize = self.uploadFileSize +  string.byte(_res)
+   -- self.uploadFileSize = self.uploadFileSize +  string.byte(_res)
 end;
 
 local function closeFileHandler(self)
+    self.uploadFileSize = getFilesize(self.uploadFile) .. " 字节";
     self.uploadFile:close()
     self.uploadFile = nil
 end;
@@ -23,7 +31,7 @@ local function exitWithClientErrorMsg(_msg, _httpCode, _err)
     else
         ngx.say(ngx.ERR, _msg);
     end
-    ngx.log(ngx.ERR, _msg)
+    ngx.log(ngx.ERR, _msg);
     ngx.exit(_httpCode);
 end 
 
