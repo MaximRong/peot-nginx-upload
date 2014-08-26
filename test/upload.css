@@ -1,0 +1,205 @@
+@charset "utf-8";
+
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+form,
+fieldset,
+input,
+textarea,
+p,
+blockquote,
+th,
+td {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #ffffff;
+    font-size: 14px;
+    font-family: SimSun, Arial, Helvetica, sans-serif;
+}
+
+html,
+body,
+#main,
+.main {
+    height: 100%;
+    min-height: 100%;
+}
+
+img {
+    vertical-align: middle;
+}
+
+ul,
+ol,
+li {
+    list-style: none;
+}
+
+a,
+a:visited,
+a:hover,
+a:active {
+    text-decoration: none;
+    color: #000000;
+}
+
+b,
+strong,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: normal;
+}
+
+em,
+i {
+    font-style: normal;
+}
+
+input {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+input:focus {
+    outline: none;
+}
+
+select,
+button {
+    outline: none;
+}
+
+textarea {
+    resize: none;
+}
+
+/** 通用定义的CSS CLASS **/
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    visibility: hidden;
+    clear: both;
+}
+
+.clearfix {
+    *zoom: 1;
+}
+
+.content {
+    width: 1190px;
+    margin: 0 auto;
+}
+
+.formSubmit {
+    padding-top: 10px;
+}
+
+.title {
+    font-family: SimSun;
+    font-size: 16px;
+    background-color: #00ccc6;
+    padding: 10px 10px;
+    border: 1px solid #000000;
+}
+
+.parameters {
+    overflow: hidden;
+    background-color: #00ccc6;
+    /*padding: 10px 10px;*/
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.parameters dt {
+    float: left;
+    /*margin-bottom: 5px;*/
+    padding: 10px 0 3px 10px;
+    width: 160px;
+    height: 30px;
+    line-height: 30px;
+}
+
+.parameters dd {
+    margin-left: 170px;
+    /*margin-bottom: 5px;*/
+    border-left: 1px solid #000000;
+    padding: 10px 0 3px 10px;
+    height: 30px;
+    line-height: 30px;
+}
+
+.parameters dd input {
+    width: 460px;
+    border: 0;
+    vertical-align: middle;
+    height: 20px;
+    padding-left: 5px;
+}
+
+.parameters dd select {
+    border: 0;
+    vertical-align: middle;
+}
+
+.parameters dd span {
+    vertical-align: middle;
+}
+
+.upload-files {
+    padding: 10px 10px;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.upload-files div {
+    margin-bottom: 10px;
+}
+
+
+.submit-form {
+    padding: 10px 10px;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.submit-form div {
+    width: 210px;
+    margin: 0 auto;
+}
+
+.submit-form p {
+    height: 60px;
+    width: 900px;
+    margin: 0 auto;
+    color: #cc0000;
+    font-size: 16px;
+}
+
+.submit-form input {
+    background-color: #00ccc6;
+    padding: 5px 5px;
+}

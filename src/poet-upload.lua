@@ -16,11 +16,11 @@ end
 local function uploadFileHandler(self, res) 
     self.uploadFile:write(res);
    -- self.uploadFileSize = self.uploadFileSize +  string.byte(res)
+    self.uploadFileSize = getFilesize(self.uploadFile);
 end;
 
 local function closeFileHandler(self)
-    self.uploadFileSize = getFilesize(self.uploadFile) .. " 字节";
-    self.uploadFile:close()
+    self.uploadFile:close();
     self.uploadFile = nil
 end;
 
@@ -42,22 +42,24 @@ local function computeLimitSize(size)
         -- ngx.log(ngx.ERR, "match ",  cjson.encode(match));
         local number, unit = match[1], match[2];
         if unit == "M" or unit == "m" then
-            limitSize = number * 1024 * 1024
+            limitSize = tonumber(number) * 1024 * 1024
         elseif unit == "K" or unit == "k" then
-            limitSize = number * 1024
+            limitSize = tonumber(number) * 1024
+        elseif unit == "b" or unit == "B" then
+            limitSize = tonumber(number);
         end
     elseif ngx.re.match(size, "^(\\d+)$") then
         limitSize = tonumber(size)
     else
-        exitWithErrorMsg("size args is Illegal, must be number or with unit 'M' or 'k'!")
+        exitWithErrorMsg("size args is Illegal, must be number or with unit 'b'  'm' or 'k'!")
     end
     return limitSize;
 end
 
 local function parseUploadLimitInfo(self)
     self.size = computeLimitSize(self.maxSize);
-    if not self.localPath then
-        exitWithErrorMsg("localPath args is Illegal, please check!")
+    if not self.storePath then
+        exitWithErrorMsg("storePath args must be set, please check!!!")
     end
     ngx.log(ngx.DEBUG, "upload limit info is : ", cjson.encode(self));
 end;
@@ -68,8 +70,8 @@ local function overLimitSize(self)
 
     if self.size < self.uploadFileSize then
         closeFileHandler(self);
-        os.remove(self.localPath .. self.fileName)
-        ngx.log(ngx.ERR, "upload file size over the limit, the upload size is : ", self.uploadFileSize, " ; the limit size is : ", self.size);
+        os.remove(self.storePath .. self.fileName)
+        ngx.log(ngx.ERR, "upload file size over the limit, the upload size is : ", self.uploadFileSize, " bytes ; the limit size is : ", self.size);
         return true;
     end
 
@@ -101,6 +103,10 @@ local function createUploadForm()
 end
 
 local function createRandomFilename(self, originalFileName)
+    if randomName == "no" then
+        self.fileName = originalFileName;
+        return;
+    end;
     local random = resty_random.bytes(16)
     local prefix, suffix = match(originalFileName, "^(.+)%.(.+)$") -- lua 原生match 正则转义用%
     self.fileName =  prefix .. str.to_hex(random) .. '.' .. suffix;
@@ -116,7 +122,7 @@ local function isHeadNotContentType(headerKey)
 end
 
 local function createDirectoryIfNotExist(self)
-    local directory = self.localPath;
+    local directory = self.storePath;
     if not checkDirectoryExists(directory) then
         ngx.log(ngx.DEBUG, "------directory path is exists, now create it ------>", directory)
         os.execute( "mkdir -p " .. directory )
@@ -124,7 +130,7 @@ local function createDirectoryIfNotExist(self)
 end
 
 local function openFileWithIoOperate(self)
-    self.uploadFile = io.open(self.localPath .. self.fileName, "w+")                   
+    self.uploadFile = io.open(self.storePath .. self.fileName, "w+")
     if not self.uploadFile then
         exitWithErrorMsg("failed to open file :" .. self.fileName)
     end
@@ -169,13 +175,13 @@ local function doEndHandlerIfExists(self, uploadResult)
     self.bodyHandler = nil;
     self.endPartHandler = nil;
 
-    table.insert(uploadResult, {filename = self.fileName, fileSize = self.uploadFileSize})
+    table.insert(uploadResult, {error = 0, filename = self.fileName, fileSize = self.uploadFileSize .. "bytes"})
     self.fileName = nil;
     self.uploadFileSize = 0;
     
 end
 
-local function handleRequestData(self, form, uploadResult) 
+local function handleRequestData(self, form)
     local uploadResult = {};
     while true do
         local typ, res, err = form:read();
@@ -204,7 +210,27 @@ local function handleRequestData(self, form, uploadResult)
     return uploadResult;
 end;
 
-function _M.upload(maxSize, suffix, localPath)
+local function contains()
+    string.find(str, "tiger")
+end
+
+local function checkDomainLegal(domains)
+    local referer =  ngx.var.http_referer;
+    local legalDomain = false;
+    for index, domain in ipairs(domains) do
+        if string.find(string.lower(referer), domain) then
+            legalDomain = true;
+            break;
+        end;
+    end;
+    if not legalDomain then
+        exitWithErrorMsg("your domain not be allowed to be submit!!")
+    end;
+end
+
+function _M.upload(maxSize, suffix, storePath, randomName, domains)
+    checkDomainLegal(domains);
+
     local self = {
         bodyHandler = nil, 
         endPartHandler = nil, 
@@ -215,12 +241,13 @@ function _M.upload(maxSize, suffix, localPath)
         size = 0,
         maxSize = maxSize or 0,
         suffix = suffix or "*",
-        localPath = localPath       
+        storePath = storePath,
+        randomName = randomName or "yes";
     };
 
     parseUploadLimitInfo(self);
     local form = createUploadForm();
-    local uploadResult = handleRequestData(self, form, uploadResult)
+    local uploadResult = handleRequestData(self, form)
     ngx.say(cjson.encode(uploadResult));       
 end;
 

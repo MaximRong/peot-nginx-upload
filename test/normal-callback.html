@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script src="http://a.b.c:10090/common/js/jquery-1.11.1.min.js" type="text/javascript"></script>
+    <style>
+        body,
+        div,
+        dl,
+        dt,
+        dd,
+        ul,
+        ol,
+        li,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        pre,
+        form,
+        fieldset,
+        input,
+        textarea,
+        p,
+        blockquote,
+        th,
+        td {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #ffffff;
+            font-size: 14px;
+            font-family: SimSun, Arial, Helvetica, sans-serif;
+        }
+
+        html,
+        body,
+        #main,
+        .main {
+            height: 100%;
+            min-height: 100%;
+        }
+
+        img {
+            vertical-align: middle;
+        }
+
+        ul,
+        ol,
+        li {
+            list-style: none;
+        }
+
+        a,
+        a:visited,
+        a:hover,
+        a:active {
+            text-decoration: none;
+            color: #000000;
+        }
+
+        b,
+        strong,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-weight: normal;
+        }
+
+        em,
+        i {
+            font-style: normal;
+        }
+
+        input {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        input:focus {
+            outline: none;
+        }
+
+        select,
+        button {
+            outline: none;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        .content {
+            width: 1190px;
+            margin: 0 auto;
+        }
+
+        .title {
+            background-color: #d2d2d2;
+            padding: 10px 10px;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .content-body {
+            padding: 10px 10px;
+            font-size: 16px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(function ($) {
+            $.urlParam = function(name){
+                var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+                if (results==null){
+                    return null;
+                }
+                else{
+                    return results[1] || 0;
+                }
+            }
+
+            function setCallBackParams() {
+                var urlParam = $.urlParam('param');
+                console.log(urlParam);
+                $("#callBackParams").text(urlParam);
+            }
+
+            setCallBackParams();
+        });
+
+    </script>
+</head>
+<body>
+<div class="content">
+    <div class="title">
+        提交回调页面
+    </div>
+    <div class="content-body">
+        <ul>
+            <li>
+                <span>返回参数：</span>
+                <span id="callBackParams"></span>
+            </li>
+        </ul>
+
+    </div>
+</div>
+
+</body>
+</html>
