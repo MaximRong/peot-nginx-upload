@@ -14,7 +14,7 @@
         <p class="title">此Demo提供最基本的form表单提交上传文件功能，请设定如下参数：</p>
         <dl class="parameters">
             <dt>图片上传url:</dt>
-            <dd class="clearfix"><input type="text" value="http://192.168.71.132:8080/upload" id="uploadUrl" /></dd>
+            <dd class="clearfix"><input type="text" value="http://a.b.c:10089/poet-upload" id="uploadUrl" /></dd>
 
             <dt>上传大小:</dt>
             <dd class="clearfix">
@@ -26,6 +26,7 @@
                 </select>
                 <span>(默认单位为byte， 可选单位为K或M, 0表示不限制)</span>
             </dd>
+
             <dt>允许的后缀:</dt>
             <dd class="clearfix">
                 <input type="text" value="*" id="allowSuffix" />
@@ -43,13 +44,13 @@
 
             <dt>图片存放路径：</dt>
             <dd class="clearfix">
-                <input type="text" id="storePath" value="/home/maxim/Documents/poet/index/" />
+                <input type="text" id="storePath" value="/home/poet/upload/sample/" />
                 <span>(请根据你服务器规划，设定你上传目录)</span>
             </dd>
 
             <dt>成功后回调页面地址：</dt>
             <dd>
-                <input type="text" id="callback" value="http://192.168.71.132:8080/preview/normal-callback.html" />
+                <input type="text" id="callback" value="http://a.b.c:10089/poet-demo-perview/form-upload-callback.html" />
                 <span>(如果你有回调页面，请设定回调页面地址)</span>
             </dd>
         </dl>
