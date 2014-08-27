@@ -8,7 +8,9 @@ $(function ($) {
         var size = uploadSize == "*" ? "*" : uploadSize + uploadSizeUnit;
         var allowSuffix = $("#allowSuffix").val();
         var storePath = $("#storePath").val();
-        var url = uploadUrl + "?" + "size=" + size + "&suffix=" + allowSuffix + "&storePath=" + storePath + "&randomName=" + randomName;
+        var callback = $("#callback").val();
+        var url = uploadUrl + "?" + "size=" + size + "&suffix=" + allowSuffix + "&storePath=" + storePath + "&randomName="
+                + randomName + "&callback=" + callback;
         return url;
     }
 
@@ -21,7 +23,7 @@ $(function ($) {
 
     });
 
-    $("#viewUrl").click(function() {
+    $("#viewUrl").click(function () {
         var url = generateUrl();
         console.log(url);
         $(".urlPanel").text(url);

@@ -118,14 +118,14 @@ textarea {
 .title {
     font-family: SimSun;
     font-size: 16px;
-    background-color: #00ccc6;
+    background-color: #d2d2d2;
     padding: 10px 10px;
     border: 1px solid #000000;
 }
 
 .parameters {
     overflow: hidden;
-    background-color: #00ccc6;
+    background-color: #d2d2d2;
     /*padding: 10px 10px;*/
     border-left: 1px solid #000000;
     border-right: 1px solid #000000;
@@ -152,7 +152,6 @@ textarea {
 
 .parameters dd input {
     width: 460px;
-    border: 0;
     vertical-align: middle;
     height: 20px;
     padding-left: 5px;
@@ -200,6 +199,6 @@ textarea {
 }
 
 .submit-form input {
-    background-color: #00ccc6;
+    background-color: #d2d2d2;
     padding: 5px 5px;
 }

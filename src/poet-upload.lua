@@ -29,7 +29,6 @@ local function exitWithErrorMsg(msg)
             error = 1,
             message = msg
     }
-
     ngx.say(cjson.encode(ret))
     ngx.log(ngx.ERR, cjson.encode(ret));
     ngx.exit(ngx.HTTP_OK);
@@ -103,14 +102,14 @@ local function createUploadForm()
 end
 
 local function createRandomFilename(self, originalFileName)
-    if randomName == "no" then
-        self.fileName = originalFileName;
-        return;
-    end;
     local random = resty_random.bytes(16)
     local prefix, suffix = match(originalFileName, "^(.+)%.(.+)$") -- lua 原生match 正则转义用%
-    self.fileName =  prefix .. str.to_hex(random) .. '.' .. suffix;
-    ngx.log(ngx.DEBUG, "------random file name is ------>", self.fileName)
+    return prefix .. str.to_hex(random) .. '.' .. suffix;
+end
+
+local function createFilename(self, originalFileName)
+    self.fileName = self.randomName == "no" and originalFileName or createRandomFilename(self, originalFileName) ;
+    ngx.log(ngx.DEBUG, "------random file name is ------>", self.fileName);
 end
 
 local function checkDirectoryExists(sPath )
@@ -148,9 +147,9 @@ local function headerResHandler(self, res)
     local originalFileName = matchUpload[2];
     ngx.log(ngx.DEBUG, "------start to handle upload file------>", originalFileName)
 
-    allowUploadType(self, originalFileName) 
+    allowUploadType(self, originalFileName)
 
-    createRandomFilename(self, originalFileName)
+    createFilename(self, originalFileName)
     
     createDirectoryIfNotExist(self)
 
@@ -175,7 +174,7 @@ local function doEndHandlerIfExists(self, uploadResult)
     self.bodyHandler = nil;
     self.endPartHandler = nil;
 
-    table.insert(uploadResult, {error = 0, filename = self.fileName, fileSize = self.uploadFileSize .. "bytes"})
+    table.insert(uploadResult, {filename = self.fileName, fileSize = self.uploadFileSize .. "bytes"})
     self.fileName = nil;
     self.uploadFileSize = 0;
     
@@ -228,9 +227,8 @@ local function checkDomainLegal(domains)
     end;
 end
 
-function _M.upload(maxSize, suffix, storePath, randomName, domains)
+function _M.upload(domains)
     checkDomainLegal(domains);
-
     local self = {
         bodyHandler = nil, 
         endPartHandler = nil, 
@@ -239,16 +237,23 @@ function _M.upload(maxSize, suffix, storePath, randomName, domains)
         uploadFileSize = 0,
 
         size = 0,
-        maxSize = maxSize or 0,
-        suffix = suffix or "*",
-        storePath = storePath,
-        randomName = randomName or "yes";
+        maxSize = ngx.var.arg_size or 0,
+        suffix = ngx.var.arg_suffix or "*",
+        storePath = ngx.var.arg_storePath,
+        randomName = ngx.var.arg_randomName or "yes",
+        callback = ngx.var.arg_callback or nil
     };
 
     parseUploadLimitInfo(self);
     local form = createUploadForm();
-    local uploadResult = handleRequestData(self, form)
-    ngx.say(cjson.encode(uploadResult));       
+    local uploadResult = handleRequestData(self, form);
+    local rep = {error = 0, message = uploadResult};
+    if self.callback ~= nil then
+        self.callback = self.callback .. "?param=" .. cjson.encode(rep);
+        return ngx.redirect(self.callback);
+    end;
+
+    ngx.say(cjson.encode(rep));
 end;
 
 
